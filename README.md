@@ -31,3 +31,15 @@ Please see [https://github.com/rohanmohapatra/pytorch-cifar](https://github.com/
 ## Adaswarm on Machine Learning Datasets
 
 Please see **/adaswarm-on-ml-datasets** folder.
+
+
+## Running this repo
+
+Clone the repo.
+Install [poetry](https://python-poetry.org/docs/) on your local machine  
+Run commands:
+```
+$poetry install
+$poetry run python adaswarm-on-ml-datasets/iris.py
+```
+

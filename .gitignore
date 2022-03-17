@@ -1,1 +1,3 @@
 ./adaswarm-on-ml-datasets/__pycache__
+adaswarm-on-ml-datasets/__pycache__/*.pyc
+report/*.png

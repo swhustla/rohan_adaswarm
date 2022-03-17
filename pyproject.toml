@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "rohan_adaswarm"
+version = "0.1.0"
+description = ""
+authors = ["swhustla <fdkelly@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+keras = "^2.8.0"
+matplotlib = "^3.5.1"
+numpy = "^1.22.2"
+pandas = "^1.4.1"
+scikit-learn = "^1.0.2"
+torch = "^1.10.2"
+torchsummary = "^1.5.1"
+torchswarm = "^0.0.1"
+tensorflow = "^2.8.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

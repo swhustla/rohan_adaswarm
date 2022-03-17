@@ -4,7 +4,7 @@
 import time
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -77,7 +77,8 @@ ds = PrepareData(X=X, y=y)
 ds = DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
-
+print(X.shape[0])
+print(batch_size)
 num_batches = int(X.shape[0]/ batch_size)
 print(num_batches)
 
@@ -85,146 +86,153 @@ bce_loss = torch.nn.BCELoss()
 proposed_loss = BCELossWithPSO.apply
 
 
-optimizer_test = 'SGD'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)
+# optimizer_test = 'SGD'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)
 
-sgd_losses = []
-sgd_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+# sgd_losses = []
+# sgd_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        #========forward pass=====================================
-        yhat = model(_x).float()
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
         
-        # print("==========================")
-        loss = bce_loss(yhat, _y)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         print("\nyhat.size: %s _y.size: %s" % (yhat.size(), _y.size()))
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         # print("==========================")
+#         loss = bce_loss(yhat, _y)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    sgd_losses.append(sum(batch_losses) / num_batches)
-    sgd_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-print(sgd_losses)
-print(sgd_accuracy)
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     print(batch_losses)
+#     print(num_batches)
+#     sgd_losses.append(sum(batch_losses) / num_batches)
+#     sgd_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
+
+# print(sgd_losses)
+# print(sgd_accuracy)
 
 
 
-optimizer_test = 'SGD-PSO'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)
+# optimizer_test = 'SGD-PSO'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)
 
-pso_losses = []
-pso_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+# pso_losses = []
+# pso_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        _y.requires_grad = False
-        p = RotatedEMParicleSwarmOptimizer(batch_size, swarm_size, 3, _y)
-        p.optimize(BCELoss(_y))
-        #========forward pass=====================================
-        yhat = model(_x).float()
-        for i in range(40):
-            c1r1, c2r2, gbest = p.run_one_iter(verbosity=False)
-        #print(gbest)
-        # print("==========================")
-        loss = proposed_loss(yhat, _y, c1r1+c2r2, 0.5, gbest)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         _y.requires_grad = False
+#         p = RotatedEMParicleSwarmOptimizer(batch_size, swarm_size, 3, _y)
+#         p.optimize(BCELoss(_y))
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
+#         for i in range(40):
+#             c1r1, c2r2, gbest = p.run_one_iter(verbosity=False)
+#         #print(gbest)
+#         # print("==========================")
+#         loss = proposed_loss(yhat, _y, c1r1+c2r2, 0.5, gbest)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    pso_losses.append(sum(batch_losses) / num_batches)
-    pso_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     pso_losses.append(sum(batch_losses) / num_batches)
+#     pso_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
 
-print(pso_losses)
-print(pso_accuracy)
+# print(pso_losses)
+# print(pso_accuracy)
 
 
-optimizer_test = 'RMSprop'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.RMSprop(params=model.parameters(), lr=0.1)
+# optimizer_test = 'RMSprop'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.RMSprop(params=model.parameters(), lr=0.1)
 
-rms_losses = []
-rms_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+# rms_losses = []
+# rms_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        #========forward pass=====================================
-        yhat = model(_x).float()
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
         
-        # print("==========================")
-        loss = bce_loss(yhat, _y)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         # print("==========================")
+#         loss = bce_loss(yhat, _y)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    rms_losses.append(sum(batch_losses) / num_batches)
-    rms_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     rms_losses.append(sum(batch_losses) / num_batches)
+#     rms_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
 
-print(rms_losses)
-print(rms_accuracy)
+# print(rms_losses)
+# print(rms_accuracy)
 
 
 
 
 optimizer_test = 'Adam'
 model = Model(n_features=4, n_neurons=10, n_out=3)
+print(model)
 optimizer = torch.optim.Adam(params=model.parameters(), lr=0.1)
+print(optimizer)
 
 adam_losses = []
 adam_accuracy=[]
+adam_timings = []
 for e in range(num_epochs):
     batch_losses=[]
     accs = []
@@ -252,142 +260,145 @@ for e in range(num_epochs):
         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
     adam_losses.append(sum(batch_losses) / num_batches)
     adam_accuracy.append(100 * sum(accs) / num_batches)
+    adam_timings.append(toc-tic)
     if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
+        print("[{}/{}], loss: {} acc: {} time: {}".format(e,
                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+                                                 100 * np.round(sum(accs) / num_batches, 3),
+                                                 toc-tic))
 
-print(adam_losses)
-print(adam_accuracy)
+# print(adam_losses)
+# print(adam_accuracy)
 
 
-optimizer_test = 'AMSGRad'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.Adam(params=model.parameters(), lr=0.1, amsgrad=True)
 
-amsgrad_losses = []
-amsgrad_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+# optimizer_test = 'AMSGRad'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.Adam(params=model.parameters(), lr=0.1, amsgrad=True)
+
+# amsgrad_losses = []
+# amsgrad_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        #========forward pass=====================================
-        yhat = model(_x).float()
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
         
-        # print("==========================")
-        loss = bce_loss(yhat, _y)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         # print("==========================")
+#         loss = bce_loss(yhat, _y)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    amsgrad_losses.append(sum(batch_losses) / num_batches)
-    amsgrad_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     amsgrad_losses.append(sum(batch_losses) / num_batches)
+#     amsgrad_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
 
-print(amsgrad_losses)
-print(amsgrad_accuracy)
-
-
+# print(amsgrad_losses)
+# print(amsgrad_accuracy)
 
 
-optimizer_test = 'AdaGrad'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.Adagrad(params=model.parameters(), lr=0.1)
 
-adagrad_losses = []
-adagrad_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+
+# optimizer_test = 'AdaGrad'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.Adagrad(params=model.parameters(), lr=0.1)
+
+# adagrad_losses = []
+# adagrad_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        #========forward pass=====================================
-        yhat = model(_x).float()
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
         
-        # print("==========================")
-        loss = bce_loss(yhat, _y)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         # print("==========================")
+#         loss = bce_loss(yhat, _y)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    adagrad_losses.append(sum(batch_losses) / num_batches)
-    adagrad_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     adagrad_losses.append(sum(batch_losses) / num_batches)
+#     adagrad_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
 
-print(adagrad_losses)
-print(adagrad_accuracy)
+# print(adagrad_losses)
+# print(adagrad_accuracy)
 
 
 
-optimizer_test = 'Adadelta'
-model = Model(n_features=4, n_neurons=10, n_out=3)
-optimizer = torch.optim.Adadelta(params=model.parameters(), lr=0.1)
+# optimizer_test = 'Adadelta'
+# model = Model(n_features=4, n_neurons=10, n_out=3)
+# optimizer = torch.optim.Adadelta(params=model.parameters(), lr=0.1)
 
-adadelta_losses = []
-adadelta_accuracy=[]
-for e in range(num_epochs):
-    batch_losses=[]
-    accs = []
-    for ix, (_x, _y) in enumerate(ds):
+# adadelta_losses = []
+# adadelta_accuracy=[]
+# for e in range(num_epochs):
+#     batch_losses=[]
+#     accs = []
+#     for ix, (_x, _y) in enumerate(ds):
         
-        #=========make inpur differentiable=======================
-        tic = time.monotonic()
-        _x = Variable(_x).float()
-        _y = Variable(_y, ).float()
-        #========forward pass=====================================
-        yhat = model(_x).float()
+#         #=========make inpur differentiable=======================
+#         tic = time.monotonic()
+#         _x = Variable(_x).float()
+#         _y = Variable(_y, ).float()
+#         #========forward pass=====================================
+#         yhat = model(_x).float()
         
-        # print("==========================")
-        loss = bce_loss(yhat, _y)
-        acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
+#         # print("==========================")
+#         loss = bce_loss(yhat, _y)
+#         acc = torch.eq(yhat.round(), _y).float().mean()# accuracy
 
-        #=======backward pass=====================================
-        optimizer.zero_grad() # zero the gradients on each pass before the update
-        loss.backward() # backpropagate the loss through the model
-        optimizer.step() # update the gradients w.r.t the loss
+#         #=======backward pass=====================================
+#         optimizer.zero_grad() # zero the gradients on each pass before the update
+#         loss.backward() # backpropagate the loss through the model
+#         optimizer.step() # update the gradients w.r.t the loss
 
-        accs.append(acc.item())
-        toc = time.monotonic()
-        batch_losses.append(loss.item())
-        print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
-    adadelta_losses.append(sum(batch_losses) / num_batches)
-    adadelta_accuracy.append(100 * sum(accs) / num_batches)
-    if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
-                                                 num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+#         accs.append(acc.item())
+#         toc = time.monotonic()
+#         batch_losses.append(loss.item())
+#         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+#     adadelta_losses.append(sum(batch_losses) / num_batches)
+#     adadelta_accuracy.append(100 * sum(accs) / num_batches)
+#     if e % 1 == 0:
+#         print("[{}/{}], loss: {} acc: {}".format(e,
+#                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
+#                                                  100 * np.round(sum(accs) / num_batches, 3)))
 
-print(adadelta_losses)
-print(adadelta_accuracy)
+# print(adadelta_losses)
+# print(adadelta_accuracy)
 
 
 
@@ -397,6 +408,7 @@ optimizer = torch.optim.Adam(params=model.parameters(), lr=0.1)
 
 adaswarm_losses = []
 adaswarm_accuracy=[]
+adaswarm_timings = []
 for e in range(num_epochs):
     batch_losses=[]
     accs = []
@@ -429,29 +441,40 @@ for e in range(num_epochs):
         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
     adaswarm_losses.append(sum(batch_losses) / num_batches)
     adaswarm_accuracy.append(100 * sum(accs) / num_batches)
+    adaswarm_timings.append(toc-tic)
     if e % 1 == 0:
-        print("[{}/{}], loss: {} acc: {}".format(e,
+        print("[{}/{}], loss: {} acc: {} time: {}".format(e,
                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
-                                                 100 * np.round(sum(accs) / num_batches, 3)))
+                                                 100 * np.round(sum(accs) / num_batches, 3),
+                                                 toc-tic))
 
-print(adaswarm_losses)
-print(adaswarm_accuracy)
+# print(adaswarm_losses)
+# print(adaswarm_accuracy)
+print(f"Adam total time: {sum(adam_timings)}s")
+print(f"AdaSwarm total time: {sum(adaswarm_timings)}s")
 
 
 
 
 import matplotlib.pyplot as plt
+import os
+
+if not os.path.exists("./report"):
+    os.mkdir("report")
+
 dataset_name = "Iris Dataset"
 
 plt.figure(figsize=(20,10))
 plt.title(dataset_name + " Loss")
 plt.plot(adam_losses, label="Adam")
 plt.plot(adaswarm_losses, label="AdaSwarm")
-plt.plot(rms_losses, label="RMSProp")
-plt.plot(sgd_losses, label="SGD")
-plt.plot(pso_losses, label="Emulate SGD-PSO Params")
+# plt.plot(rms_losses, label="RMSProp")
+# plt.plot(sgd_losses, label="SGD")
+# plt.plot(pso_losses, label="Emulate SGD-PSO Params")
 plt.legend()
-plt.show()
+
+plt.savefig(os.path.join("report", "rohan-training_loss.png"))
+
 
 
 # In[41]:
@@ -461,11 +484,12 @@ plt.figure(figsize=(20,10))
 plt.title(dataset_name + " Accuracy")
 plt.plot(adam_accuracy, label="Adam")
 plt.plot(adaswarm_accuracy, label="AdaSwarm")
-plt.plot(rms_accuracy, label="RMSProp")
-plt.plot(sgd_accuracy, label="SGD")
-plt.plot(pso_accuracy, label="Emulate SGD-PSO Params")
+# plt.plot(rms_accuracy, label="RMSProp")
+# plt.plot(sgd_accuracy, label="SGD")
+# plt.plot(pso_accuracy, label="Emulate SGD-PSO Params")
 plt.legend()
-plt.show()
+plt.savefig(os.path.join("report", "rohan-training_accuracy.png"))
+
 
 
 # In[ ]:
