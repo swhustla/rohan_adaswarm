@@ -236,6 +236,7 @@ adam_timings = []
 for e in range(num_epochs):
     batch_losses=[]
     accs = []
+    batch_timings =[]
     for ix, (_x, _y) in enumerate(ds):
         
         #=========make inpur differentiable=======================
@@ -257,10 +258,11 @@ for e in range(num_epochs):
         accs.append(acc.item())
         toc = time.monotonic()
         batch_losses.append(loss.item())
+        batch_timings.append(toc-tic)
         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
     adam_losses.append(sum(batch_losses) / num_batches)
     adam_accuracy.append(100 * sum(accs) / num_batches)
-    adam_timings.append(toc-tic)
+    adam_timings.append(sum(batch_timings))
     if e % 1 == 0:
         print("[{}/{}], loss: {} acc: {} time: {}".format(e,
                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
@@ -411,6 +413,7 @@ adaswarm_accuracy=[]
 adaswarm_timings = []
 for e in range(num_epochs):
     batch_losses=[]
+    batch_timings =[]
     accs = []
     for ix, (_x, _y) in enumerate(ds):
         
@@ -439,9 +442,11 @@ for e in range(num_epochs):
         toc = time.monotonic()
         batch_losses.append(loss.item())
         print("Batch : {}| Loss: {} | Time: {}".format(ix, loss.item(), toc-tic))
+        batch_timings.append(toc-tic)
     adaswarm_losses.append(sum(batch_losses) / num_batches)
     adaswarm_accuracy.append(100 * sum(accs) / num_batches)
-    adaswarm_timings.append(toc-tic)
+    adaswarm_timings.append(sum(batch_timings))
+
     if e % 1 == 0:
         print("[{}/{}], loss: {} acc: {} time: {}".format(e,
                                                  num_epochs, np.round(sum(batch_losses) / num_batches, 3),
